@@ -1,8 +1,14 @@
 package `in`.dazzlingapps.eyeneedabreak
 
+import `in`.dazzlingapps.eyeneedabreak.services.MyForegroundService
 import `in`.dazzlingapps.eyeneedabreak.utils.AppConstants
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.TimePickerDialog
+import android.content.Context
+import android.content.Intent
 import android.media.MediaPlayer
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -43,6 +49,39 @@ class MainActivity : AppCompatActivity() {
         btnStartTimer.setOnClickListener {
             startTimer(noHoursToWork, noMinutesToWork)
         }
+
+        createNotificationChannel()
+        showNotific()
+    }
+
+    private fun showNotific() {
+        Toast.makeText(this, "notificc", Toast.LENGTH_SHORT).show()
+        val intent = Intent(this, MyForegroundService::class.java)
+        intent.putExtra("start_time_for","work")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        }else{
+            startService(intent)
+        }
+    }
+
+
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "CHANNEL NAME"
+            val descriptionText = "CHANNEL DESCRIPTION"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(MyForegroundService().CHANNEL_ID, name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun startTimer(hour: Int, minutes: Int) {
@@ -67,6 +106,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playSound() {
+        Toast.makeText(this@MainActivity, "Starting alarm...", Toast.LENGTH_SHORT).show()
         val mp = MediaPlayer.create(this@MainActivity, R.raw.alarmmorning)
         mp.start()
     }
